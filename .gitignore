@@ -1,0 +1,25 @@
+# macOS system files
+.DS_Store
+
+# Python virtual environment
+venv/
+
+# Compiled Python files
+*.pyc
+__pycache__/
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.idea/
+.vscode/
+
+# Dependency directories
+env/
+lib/
+data/
+
+# Test file
+testing_notebook.ipynb
