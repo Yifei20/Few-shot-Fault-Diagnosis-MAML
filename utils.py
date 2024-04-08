@@ -1,22 +1,27 @@
 import logging
 import torch
+import os
 import numpy as np
 
-
-def setlogger(path):
-
+def setlogger(logpath):
+    if not os.path.exists(logpath):
+        os.makedirs(logpath)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-    consoleHandler = logging.StreamHandler()
-    fileHandler = logging.FileHandler(filename=path)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter("[%(asctime)s] %(message)s",
+                                   datefmt="%Y-%m-%d %H:%M:%S")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
-    consoleHandler.setFormatter(formatter)
-    fileHandler.setFormatter(formatter)
+    fh = logging.FileHandler(os.path.join(logpath))
+    fh.setLevel(logging.INFO)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
-    logger.addHandler(consoleHandler)
-    logger.addHandler(fileHandler)
+
 
 def accuracy(predictions, targets):
     predictions = predictions.argmax(dim=1).view(targets.shape)
