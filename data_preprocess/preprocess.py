@@ -1,24 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
-import sklearn
 import os
 
 from scipy.io import loadmat
-from scipy.signal import stft
-from PIL import Image
-from utils import setlogger
+from sklearn.utils import shuffle
+from utils import (
+    setlogger, 
+    normalize,
+    generate_time_frequency_image_dataset
+)
 
 
 # Name dictionary of different fault types in each working condition
-dataname_dict= {0:[97, 105, 118, 130, 169, 185, 197, 209, 222, 234],  # load 0 HP, motor speed 1797 RPM
-                1:[98, 106, 119, 131, 170, 186, 198, 210, 223, 235],  # load 1 HP, motor speed 1772 RPM
-                2:[99, 107, 120, 132, 171, 187, 199, 211, 224, 236],  # load 2 HP, motor speed 1750 RPM
-                3:[100, 108, 121, 133, 172, 188, 200, 212, 225, 237]}  # load 3 HP, motor speed 1730 RPM
+dataname_dict= {
+    0:[97, 105, 118, 130, 169, 185, 197, 209, 222, 234],  # load 0 HP, motor speed 1797 RPM
+    1:[98, 106, 119, 131, 170, 186, 198, 210, 223, 235],  # load 1 HP, motor speed 1772 RPM
+    2:[99, 107, 120, 132, 171, 187, 199, 211, 224, 236],  # load 2 HP, motor speed 1750 RPM
+    3:[100, 108, 121, 133, 172, 188, 200, 212, 225, 237]  # load 3 HP, motor speed 1730 RPM
+    }  
 # Partial part of the axis name
 axis = "_DE_time"
 # Labels of different fault types
 labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
 
 def load_CWRU_dataset(
         domain, 
@@ -58,46 +63,11 @@ def load_CWRU_dataset(
             end = start + time_steps
             sub_data = mat_data[start : end]
             dataset[label].append(sub_data)
-
         # Shuffle the data
-        dataset[label] = sklearn.utils.shuffle(dataset[label], random_state=random_seed)
-        logging.info("Data is shuffled using random seed: {}\n".format(random_seed))
-    
+        dataset[label] = shuffle(dataset[label], random_state=random_seed)
+        logging.info("Data is shuffled using random seed: {}\n"
+                     .format(random_seed))
     return dataset
-
-def normalize(data):
-    return (data-min(data)) / (max(data)-min(data))
-
-
-def make_time_frequency_image(dataset, img_size, window_size, overlap, img_path):
-    overlap_samples = int(window_size * overlap)
-    frequency, time, magnitude = stft(dataset, nperseg=window_size, noverlap=overlap_samples)
-    magnitude = np.abs(magnitude)
-
-    # Image Plotting
-    plt.pcolormesh(time, frequency, magnitude, shading='gouraud')
-    plt.axis('off')
-    plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-    plt.margins(0, 0)
-    plt.gcf().set_size_inches(img_size/100, img_size/100)
-    plt.savefig(img_path, dpi=100)
-    plt.clf()
-    plt.close()
-
-def generate_time_frequency_image_dataset(dataset, img_size, window_size, overlap, img_dir):
-    for label in labels:
-        count = 0
-        for i, data in enumerate(dataset[label]):
-            os.makedirs(img_dir, exist_ok=True)
-            img_path = img_dir + str(label) + "_" + str(count)
-            make_time_frequency_image(data, img_size, window_size, overlap, img_path)
-            count += 1
-    image_list = os.listdir(img_dir)
-    for image_name in image_list:
-        image_path = os.path.join(img_dir, image_name)
-        img = Image.open(image_path)
-        img = img.convert('RGB')
-        img.save(image_path)
 
 
 if __name__ == '__main__':

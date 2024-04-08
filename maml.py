@@ -1,6 +1,4 @@
-# from datasets import CWRU
-from models import CNN1D
-from Datasets.cwru import CWRU
+from datasets.cwru import CWRU
 
 import logging
 import random
@@ -10,36 +8,8 @@ from torch import nn
 import learn2learn as l2l
 from learn2learn.data.transforms import FusedNWaysKShots, LoadData, RemapLabels, ConsecutiveLabels
 
-from statistics import mean
-from copy import deepcopy
-
-def accuracy(predictions, targets):
-    predictions = predictions.argmax(dim=1).view(targets.shape)
-    return (predictions == targets).sum().float() / targets.size(0)
-
-
-def fast_adapt(batch, learner, loss, adaptation_steps, shots, ways, device):
-    data, labels = batch
-    data, labels = data.to(device), labels.to(device)
-
-    # Separate data into adaptation/evalutation sets
-    adaptation_indices = np.zeros(data.size(0), dtype=bool)
-    adaptation_indices[np.arange(shots*ways) * 2] = True
-    evaluation_indices = torch.from_numpy(~adaptation_indices)
-    adaptation_indices = torch.from_numpy(adaptation_indices)
-    adaptation_data, adaptation_labels = data[adaptation_indices], labels[adaptation_indices]
-    evaluation_data, evaluation_labels = data[evaluation_indices], labels[evaluation_indices]
-
-    # Adapt the model
-    for step in range(adaptation_steps):
-        train_error = loss(learner(adaptation_data), adaptation_labels)
-        learner.adapt(train_error)
-
-    # Evaluate the adapted model
-    predictions = learner(evaluation_data)
-    valid_error = loss(predictions, evaluation_labels)
-    valid_accuracy = accuracy(predictions, evaluation_labels)
-    return valid_error, valid_accuracy
+import matplotlib.pyplot as plt
+from utils import (setlogger, fast_adapt)
 
 def train(
         # Training parameters
@@ -59,12 +29,7 @@ def train(
         valid_domain=2,
         test_domain=3,
         # Data path
-        data_dir_path='./data',
-        # Data spilting settings
-        sample_number=100,
-        sliding_step=512,
-        window_size=1024,
-
+        data_dir_path='./data'
 ):
     # Set the Random Seed
     random.seed(seed)
@@ -76,10 +41,10 @@ def train(
         torch.cuda.manual_seed(seed)
         device_count = torch.cuda.device_count()
         device = torch.device('cuda')
-        logging.info('using {} gpus'.format(device_count))
+        logging.info('Training MAML with {} GPU(s).'.format(device_count))
     else:
         device = torch.device('cpu')
-        logging.info('using cpu')
+        logging.info('Training MAML with CPU.')
     
     # Create Datasets
     train_dataset = CWRU(train_domain,
@@ -134,14 +99,18 @@ def train(
     )
 
     # Create Model
-    # model = CNN1D()
     model = l2l.vision.models.CNN4(output_size=10)
     model.to(device)
     maml = l2l.algorithms.MAML(model, lr=fast_lr, first_order=False)
     opt = torch.optim.Adam(model.parameters(), meta_lr)
     loss = nn.CrossEntropyLoss(reduction='mean')
 
-    for iteration in range(iters):
+    train_acc = []
+    valid_acc = []
+    train_loss = []
+    valid_loss = []
+
+    for iteration in range(1, iters+1):
         opt.zero_grad()
         meta_train_error = 0.0
         meta_train_accuracy = 0.0
@@ -149,6 +118,8 @@ def train(
         meta_valid_accuracy = 0.0
         meta_test_error = 0.0
         meta_test_accuracy = 0.0
+
+
         for task in range(meta_batch_size):
             # Compute meta-training loss
             learner = maml.clone()
@@ -190,16 +161,41 @@ def train(
             meta_test_error += evaluation_error.item()
             meta_test_accuracy += evaluation_accuracy.item()
 
+        train_acc.append(meta_train_accuracy / meta_batch_size)
+        valid_acc.append(meta_valid_accuracy / meta_batch_size)
+        train_loss.append(meta_train_error / meta_batch_size)
+        valid_loss.append(meta_valid_error / meta_batch_size)
+
         # Print some metrics
-        if (iteration % 100 == 0):
-            print('\n')
-            print('Iteration', iteration)
-            print('Meta Train Error', meta_train_error / meta_batch_size)
-            print('Meta Train Accuracy', meta_train_accuracy / meta_batch_size)
-            print('Meta Valid Error', meta_valid_error / meta_batch_size)
-            print('Meta Valid Accuracy', meta_valid_accuracy / meta_batch_size)
-            print('Meta Test Error', meta_test_error / meta_batch_size)
-            print('Meta Test Accuracy', meta_test_accuracy / meta_batch_size)
+        # if (iteration % 10 == 0):
+        print('\n')
+        print('Iteration', iteration)
+        print('Meta Train Error', meta_train_error / meta_batch_size)
+        print('Meta Train Accuracy', meta_train_accuracy / meta_batch_size)
+        print('Meta Valid Error', meta_valid_error / meta_batch_size)
+        print('Meta Valid Accuracy', meta_valid_accuracy / meta_batch_size)
+        print('Meta Test Error', meta_test_error / meta_batch_size)
+        print('Meta Test Accuracy', meta_test_accuracy / meta_batch_size)
+
+        # ========================= plot ==========================
+        if (iteration % 10 == 0):
+            plt.figure(figsize=(12, 4))
+            plt.subplot(121)
+            plt.plot(train_acc, '-o', label="train acc")
+            plt.plot(valid_acc, '-o', label="valid acc")
+            plt.xlabel('Trainin iteration')
+            plt.ylabel('Accuracy')
+            plt.title("Accuracy Curve by Iteration")
+            plt.legend()
+            plt.subplot(122)
+            plt.plot(train_loss, '-o', label="train loss")
+            plt.plot(valid_loss, '-o', label="valid loss")
+            plt.xlabel('Trainin iteration')
+            plt.ylabel('Loss')
+            plt.title("Loss Curve by Iteration")
+            plt.legend()
+            plt.suptitle("CWRU Bearing Fault Diagnosis {}way-{}shot".format(ways, shots))
+            plt.savefig('./results/image_{}.png'.format(iteration))
 
         # Average the accumulated gradients and optimize
         for p in model.parameters():
