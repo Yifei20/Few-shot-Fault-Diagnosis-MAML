@@ -1,11 +1,9 @@
 import logging
-import torch
 import os
+import torch
 import numpy as np
 
 def setlogger(logpath):
-    if not os.path.exists(logpath):
-        os.makedirs(logpath)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
@@ -16,7 +14,7 @@ def setlogger(logpath):
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler(os.path.join(logpath))
+    fh = logging.FileHandler(logpath)
     fh.setLevel(logging.INFO)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
