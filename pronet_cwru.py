@@ -26,20 +26,20 @@ def accuracy(predictions, targets):
     return (predictions == targets).sum().float() / targets.size(0)
 
 
-class Convnet(nn.Module):
+# class Convnet(nn.Module):
 
-    def __init__(self, x_dim=3, hid_dim=64, z_dim=64):
-        super().__init__()
-        self.encoder = l2l.vision.models.CNN4Backbone(
-            hidden_size=hid_dim,
-            channels=x_dim,
-            max_pool=True,
-       )
-        self.out_channels = 1600
+#     def __init__(self, x_dim=3, hid_dim=64, z_dim=64):
+#         super().__init__()
+#         self.encoder = l2l.vision.models.CNN4Backbone(
+#             hidden_size=hid_dim,
+#             channels=x_dim,
+#             max_pool=True,
+#        )
+#         self.out_channels = 1600
 
-    def forward(self, x):
-        x = self.encoder(x)
-        return x.view(x.size(0), -1)
+#     def forward(self, x):
+#         x = self.encoder(x)
+#         return x.view(x.size(0), -1)
 
 
 def fast_adapt(model, batch, ways, shot, query_num, metric=None, device=None):
@@ -79,7 +79,7 @@ def fast_adapt(model, batch, ways, shot, query_num, metric=None, device=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--max-epoch', type=int, default=250)
+    parser.add_argument('--max-epoch', type=int, default=1)
     parser.add_argument('--shot', type=int, default=5)
     parser.add_argument('--test-way', type=int, default=10)
     parser.add_argument('--test-shot', type=int, default=5)
@@ -95,14 +95,17 @@ if __name__ == '__main__':
         print("Using gpu")
         torch.cuda.manual_seed(43)
         device = torch.device('cuda')
-
-    model = Convnet()
+    else:
+        print("Using cpu")
+        torch.manual_seed(43)
+    
+    model = l2l.vision.models.CNN4(output_size=10)
     model.to(device)
 
-    # path_data = '~/data'
-    train_dataset = CWRU(1, './data')
-    valid_dataset = CWRU(2, './data')
-    test_dataset = CWRU(3, './data')
+    path_data = './data'
+    train_dataset = CWRU(1, path_data)
+    valid_dataset = CWRU(3, path_data)
+    test_dataset = CWRU(2, path_data)
 
     train_dataset = l2l.data.MetaDataset(train_dataset)
     train_transforms = [
@@ -111,7 +114,10 @@ if __name__ == '__main__':
         LoadData(train_dataset),
         RemapLabels(train_dataset),
     ]
-    train_tasks = l2l.data.Taskset(train_dataset, task_transforms=train_transforms)
+    train_tasks = l2l.data.Taskset(
+        train_dataset, 
+        task_transforms=train_transforms,
+        num_tasks=20)
     train_loader = DataLoader(train_tasks, pin_memory=True, shuffle=True)
 
     valid_dataset = l2l.data.MetaDataset(valid_dataset)
@@ -124,7 +130,7 @@ if __name__ == '__main__':
     valid_tasks = l2l.data.Taskset(
         valid_dataset,
         task_transforms=valid_transforms,
-        num_tasks=100,
+        num_tasks=10,
     )
     valid_loader = DataLoader(valid_tasks, pin_memory=True, shuffle=True)
 
@@ -138,7 +144,7 @@ if __name__ == '__main__':
     test_tasks = l2l.data.Taskset(
         test_dataset,
         task_transforms=test_transforms,
-        num_tasks=100,
+        num_tasks=10,
     )
     test_loader = DataLoader(test_tasks, pin_memory=True, shuffle=True)
 

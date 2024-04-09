@@ -20,7 +20,6 @@ def setlogger(logpath):
     logger.addHandler(fh)
 
 
-
 def accuracy(predictions, targets):
     predictions = predictions.argmax(dim=1).view(targets.shape)
     return (predictions == targets).sum().float() / targets.size(0)
@@ -48,6 +47,15 @@ def fast_adapt(batch, learner, loss, adaptation_steps, shots, ways, device):
     valid_error = loss(predictions, evaluation_labels)
     valid_accuracy = accuracy(predictions, evaluation_labels)
     return valid_error, valid_accuracy
+
+
+def pairwise_distances_logits(a, b):
+    n = a.shape[0]
+    m = b.shape[0]
+    logits = -((a.unsqueeze(1).expand(n, m, -1) -
+                b.unsqueeze(0).expand(n, m, -1))**2).sum(dim=2)
+    return logits
+
 
 if __name__ == '__main__':
     pass

@@ -11,6 +11,7 @@ import torch
 from scipy.io import loadmat
 from torch.utils.data import Dataset
 from torchvision import transforms
+from data_preprocess.preprocess import *
 from PIL import Image
 import os
 
@@ -49,6 +50,32 @@ class CWRU(Dataset):
         img = Image.open(img_path)
         img = self.transform(img)
         return img, label
+
+class CWRU_RAW(Dataset):
+
+    def __init__(self, 
+                 domain,
+                 dir_path,
+                 fft=True):
+        super(CWRU_RAW, self).__init__()
+        self.root = dir_path
+
+        if domain not in [0, 1, 2, 3]:
+            raise ValueError('Argument "domain" must be 0, 1, 2 or 3.')
+        self.domain = domain
+        self.dataset = load_CWRU_dataset(domain, dir_path, raw=True, fft=fft)
+        self.data, self.labels = extract_dict_data(self.dataset)
+
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, index):
+        sample = self.data[index]
+        label = self.labels[index]
+
+        sample = torch.from_numpy(sample).float()
+        label = torch.tensor(label)
+        return sample, label
 
 
 if __name__ == '__main__':

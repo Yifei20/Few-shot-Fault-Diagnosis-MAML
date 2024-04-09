@@ -5,7 +5,7 @@ import os
 
 from scipy.io import loadmat
 from sklearn.utils import shuffle
-from data_utils import (
+from data_preprocess.utils import (
     setlogger, 
     normalize,
     generate_time_frequency_image_dataset
@@ -31,7 +31,9 @@ def load_CWRU_dataset(
         time_steps=1024,
         overlap_ratio=0.5,
         normalization=False,
-        random_seed=42
+        random_seed=42,
+        raw=False,
+        fft=True
 ):
     logging.info("Domain: {}, normalization: {}, time_steps: {}, overlap_ratio: {}."
                  .format(domain, normalization, time_steps, overlap_ratio))
@@ -62,12 +64,35 @@ def load_CWRU_dataset(
             start = i * stride
             end = start + time_steps
             sub_data = mat_data[start : end]
+            if raw:
+                sub_data = sample_preprocessing(sub_data, fft)
             dataset[label].append(sub_data)
         # Shuffle the data
         dataset[label] = shuffle(dataset[label], random_state=random_seed)
         logging.info("Data is shuffled using random seed: {}\n"
                      .format(random_seed))
     return dataset
+
+
+def sample_preprocessing(sub_data, fft=False):
+    if fft:
+        sub_data = np.fft.fft(sub_data)
+        sub_data = np.abs(sub_data) / len(sub_data)
+        sub_data = sub_data[:int(sub_data.shape[0] / 2)].reshape(-1,)           
+    sub_data = sub_data[np.newaxis, :]
+
+    return sub_data
+
+
+def extract_dict_data(dataset):
+    x = np.concatenate([dataset[key] for key in dataset.keys()])
+    y = []
+    for i, key in enumerate(dataset.keys()):
+        number = len(dataset[key])
+        y.append(np.tile(i, number))
+    y = np.concatenate(y)
+    return x, y
+
 
 
 if __name__ == '__main__':
