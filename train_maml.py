@@ -30,8 +30,8 @@ def parse_args():
                         help='Number of outer loop iterations, \
                               i.e. no. of meta-tasks for each batch, \
                               default=32')
-    parser.add_argument('--iters', type=int, default=200,
-                        help='Number of outer-loop iterations, default=200')
+    parser.add_argument('--iters', type=int, default=300,
+                        help='Number of outer-loop iterations, default=300')
     parser.add_argument('--first_order', type=bool, default=True,
                         help='Use the first-order approximation, default=True')
     

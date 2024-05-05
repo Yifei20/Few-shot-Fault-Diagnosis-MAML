@@ -176,10 +176,7 @@ def train_model(args, model, maml, opt, loss,
 
         # Plot
         if args.plot and iteration % args.plot_step == 0:
-            plot_metrics(iteration, 
-                         train_acc_list, test_acc_list, 
-                         train_err_list, test_err_list,
-                         experiment_title)
+            plot_metrics(args, iteration, train_acc_list, test_acc_list, train_err_list, test_err_list, experiment_title)
 
         # Save the model checkpoint
         if args.checkpoint and iteration % args.checkpoint_step == 0:
