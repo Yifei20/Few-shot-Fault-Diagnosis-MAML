@@ -72,7 +72,7 @@ def create_datasets(args):
             train_tasks.append(l2l.data.Taskset(
                 train_datasets[i],
                 task_transforms=train_transforms[i],
-                num_tasks=200,
+                num_tasks=args.train_task_num,
             ))
         test_dataset = CWRU(args.test_domain,
                             args.data_dir_path)
@@ -90,7 +90,7 @@ def create_datasets(args):
     test_tasks = l2l.data.Taskset(
         test_dataset,
         task_transforms=test_transforms,
-        num_tasks=100,
+        num_tasks=args.test_task_num,
     )
 
     return train_tasks, test_tasks
@@ -176,12 +176,16 @@ def train_model(args, model, maml, opt, loss,
 
         # Plot
         if args.plot and iteration % args.plot_step == 0:
-            plot_metrics(args, iteration, train_acc_list, test_acc_list, train_err_list, test_err_list, experiment_title)
+            plot_metrics(args, 
+                         iteration, 
+                         train_acc_list, test_acc_list, 
+                         train_err_list, test_err_list, 
+                         experiment_title)
 
         # Save the model checkpoint
         if args.checkpoint and iteration % args.checkpoint_step == 0:
             torch.save(model.state_dict(), 
-                       args.checkpoint_path + 
+                       args.checkpoint_path + '/' +
                        experiment_title + 
                        '_{}.pt'.format(iteration))
         # Log some metrics
@@ -194,11 +198,12 @@ def train_model(args, model, maml, opt, loss,
         opt.step()
 
 
-def plot_metrics(args, iteration, 
+def plot_metrics(args, 
+                 iteration, 
                  train_acc, test_acc, 
                  train_loss, test_loss, 
                  experiment_title):
-    if (iteration % 10 == 0):
+    if (iteration % args.plot_step == 0):
         plt.figure(figsize=(12, 4))
         plt.subplot(121)
         plt.plot(train_acc, '-o', label="train acc")
@@ -215,7 +220,7 @@ def plot_metrics(args, iteration,
         plt.title("Loss Curve by Iteration")
         plt.legend()
         plt.suptitle("CWRU Bearing Fault Diagnosis {}way-{}shot".format(args.ways, args.shots))
-        plt.savefig(args.plot_path + experiment_title + '_{}.png'.format(iteration))
+        plt.savefig(args.plot_path + '/' + experiment_title + '_{}.png'.format(iteration))
         plt.show()
 
 

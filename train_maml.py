@@ -40,6 +40,7 @@ def parse_args():
                         help='Use CUDA if available, default=True')
     parser.add_argument('--seed', type=int, default=42,
                         help='Random seed, default=42')
+    
     # Dataset parameters
     parser.add_argument('--data_dir_path', type=str, default='./data',
                         help='Path to the data directory, default=./data')
@@ -51,12 +52,16 @@ def parse_args():
                         help='Training domain')
     parser.add_argument('--test_domain', type=int, default=3,
                         help='Test domain')
+    parser.add_argument('--train_task_num', type=int, default=200,
+                        help='Number of samples per domain for training, default=200')
+    parser.add_argument('--test_task_num', type=int, default=100,
+                        help='Number of samples per domain for testing, default=100')
     
     # Curve plotting parameters
     parser.add_argument('--plot', type=bool, default=True,
                         help='Plot the learning curve, default=True')
-    parser.add_argument('--plot_path', type=str, default='./curves',
-                        help='Directory to save the learning curve, default=./curves')
+    parser.add_argument('--plot_path', type=str, default='./images',
+                        help='Directory to save the learning curve, default=./images')
     parser.add_argument('--plot_step', type=int, default=50,
                         help='Step for plotting the learning curve, default=50')
     
