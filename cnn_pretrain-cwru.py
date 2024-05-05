@@ -15,7 +15,9 @@ import random
 from models import CNN1D
 
 data_dir = './data'
-train_domain = 0
+ways=10
+shots=5
+train_domain = 1
 valid_domain = 2
 test_domain = 3
 num_epchs = 10
@@ -44,7 +46,7 @@ valid_dataset = CWRU_RAW(valid_domain, data_dir, fft=False)
 valid_loader = DataLoader(valid_dataset, batch_size=64, shuffle=True)
 
 test_dataset = CWRU_RAW(test_domain, data_dir, fft=False)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=True)
 
 # model = l2l.vision.models.CNN4(output_size=10)
 model = CNN1D()
@@ -103,6 +105,19 @@ for epoch in range(num_epchs):
         valid_loss_min = valid_loss
 
 model.load_state_dict(torch.load('./models/cnn_pretrain.pt'))
+# count = 0
+# model.train()
+# for images, labels in train_loader:
+#     count += 1
+#     images, labels = images.to(device), labels.to(device)
+#     optimizer.zero_grad()
+#     logits = model(images)
+#     loss = criterion(logits, labels)
+#     loss.backward()
+#     optimizer.step()
+#     if count >= ways * shots:
+#         break
+
 model.eval()
 test_loss_sum = 0.0
 test_acc_num = 0.0
@@ -115,8 +130,5 @@ for images, labels in test_loader:
     test_acc_num += sum(torch.max(logits, dim=1)[1] == labels).cpu()
 test_acc = 100 * test_acc_num/len(test_loader.dataset)
 test_loss = test_loss_sum/len(test_loader.dataset)
-print('Test loss: {:.3f}, Test acc: {:.1f}%'.format(test_loss, test_acc))
-
-# Fine-tune the model using different working conditions
-print("Fine-tuning the model...")
+print('Test loss: {:.3f}, Test acc: {:.2f}%'.format(test_loss, test_acc))
 

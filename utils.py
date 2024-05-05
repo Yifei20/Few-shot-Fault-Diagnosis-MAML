@@ -3,20 +3,21 @@ import os
 import torch
 import numpy as np
 
-def setlogger(logpath):
+def setup_logger(args, experiment_title):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
     formatter = logging.Formatter("[%(asctime)s] %(message)s",
                                    datefmt="%Y-%m-%d %H:%M:%S")
+    
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
     ch.setFormatter(formatter)
-    logger.addHandler(ch)
 
-    fh = logging.FileHandler(logpath)
+    fh = logging.FileHandler(os.path.join(args.log_path, 
+                                          experiment_title + '.log'))
     fh.setLevel(logging.INFO)
     fh.setFormatter(formatter)
+    logger.addHandler(ch)
     logger.addHandler(fh)
 
 
@@ -56,6 +57,14 @@ def pairwise_distances_logits(a, b):
                 b.unsqueeze(0).expand(n, m, -1))**2).sum(dim=2)
     return logits
 
+def print_logs(iteration, meta_train_error, meta_train_accuracy, meta_test_error, meta_test_accuracy):
+    logging.info('Iteration {}:'.format(iteration))
+    logging.info('Meta Train Results:')
+    logging.info('Meta Train Error: {}.'.format(meta_train_error))
+    logging.info('Meta Train Accuracy: {}.'.format(meta_train_accuracy))
+    logging.info('Meta Test Results:')
+    logging.info('Meta Test Error: {}.'.format(meta_test_error))
+    logging.info('Meta Test Accuracy: {}.\n'.format(meta_test_accuracy))
 
 if __name__ == '__main__':
     pass
