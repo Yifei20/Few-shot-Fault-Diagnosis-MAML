@@ -11,7 +11,10 @@ import torch
 from scipy.io import loadmat
 from torch.utils.data import Dataset
 from torchvision import transforms
-from data_preprocess.preprocess import *
+from datasets.preprocess.cwru_preprocess import (
+    load_CWRU_dataset,
+    extract_dict_data,
+)
 from PIL import Image
 import os
 
@@ -28,7 +31,7 @@ class CWRU(Dataset):
         self.domain = domain
         self.dir_path = dir_path
     
-        self.img_dir = dir_path + "/STFTImageData/Drive_end_" + str(domain) + "/"
+        self.img_dir = dir_path + "/STFTImageData_CWRU/Drive_end_" + str(domain) + "/"
         self.img_list = os.listdir(self.img_dir)
 
         if transform is None:

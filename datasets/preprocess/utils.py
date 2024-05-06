@@ -1,5 +1,6 @@
 import logging
 import os
+import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import stft
@@ -25,11 +26,13 @@ def normalize(data):
 
 
 
-def make_time_frequency_image(dataset, img_size, window_size, overlap, img_path):
+def make_time_frequency_image(dataset_name, dataset, img_size, window_size, overlap, img_path):
     overlap_samples = int(window_size * overlap)
     frequency, time, magnitude = stft(dataset, nperseg=window_size, noverlap=overlap_samples)
-    magnitude = np.abs(magnitude)
-
+    if dataset_name == 'HST':
+        magnitude = np.log10(np.abs(magnitude) + 1e-10)
+    else:
+        magnitude = np.abs(magnitude)
     # Image Plotting
     plt.pcolormesh(time, frequency, magnitude, shading='gouraud')
     plt.axis('off')
@@ -42,18 +45,23 @@ def make_time_frequency_image(dataset, img_size, window_size, overlap, img_path)
 
 
 
-def generate_time_frequency_image_dataset(dataset, labels, img_size, window_size, overlap, img_dir):
+def generate_time_frequency_image_dataset(dataset_name, dataset, labels, img_size, window_size, overlap, img_dir):
     for label in labels:
         count = 0
         for i, data in enumerate(dataset[label]):
             os.makedirs(img_dir, exist_ok=True)
             img_path = img_dir + str(label) + "_" + str(count)
-            make_time_frequency_image(data, img_size, window_size, overlap, img_path)
+            make_time_frequency_image(dataset_name, data, img_size, window_size, overlap, img_path)
             count += 1
-    
     image_list = os.listdir(img_dir)
     for image_name in image_list:
         image_path = os.path.join(img_dir, image_name)
         img = Image.open(image_path)
         img = img.convert('RGB')
         img.save(image_path)
+
+
+def loadmat_v73(data_path, realaxis, channel):
+    with h5py.File(data_path, 'r') as f:
+        mat_data = f[f[realaxis]['Y']['Data'][channel][0]]
+        return mat_data[:].reshape(-1)

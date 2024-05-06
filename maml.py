@@ -1,5 +1,9 @@
 from datasets.cwru import CWRU
-from utils import *
+from datasets.hst import HST
+from utils import (
+    print_logs,
+    fast_adapt,
+)
 
 import logging
 import torch
@@ -23,7 +27,7 @@ def train(args, experiment_title):
     Args:
         args: parsed arguments
     """
-    
+    logging.info('Experiment: {}'.format(experiment_title))
     # Set the Random Seed
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -55,32 +59,39 @@ def create_datasets(args):
         valid_tasks: validation tasks
         test_tasks: testing tasks
     """
-    if args.dataset == 'CWRU':
-        train_datasets = []
-        train_transforms = []
-        train_tasks = []
-        for i in range(len(args.train_domains)):
-            train_datasets.append(CWRU(args.train_domains[i], 
-                                         args.data_dir_path)) 
-            train_datasets[i] = l2l.data.MetaDataset(train_datasets[i])
-            train_transforms.append([
-                FusedNWaysKShots(train_datasets[i], n=args.ways, k=2*args.shots),
-                LoadData(train_datasets[i]),
-                RemapLabels(train_datasets[i]),
-                ConsecutiveLabels(train_datasets[i]),
-            ])
-            train_tasks.append(l2l.data.Taskset(
-                train_datasets[i],
-                task_transforms=train_transforms[i],
-                num_tasks=args.train_task_num,
-            ))
-        test_dataset = CWRU(args.test_domain,
-                            args.data_dir_path)
-        test_dataset = l2l.data.MetaDataset(test_dataset)
+    logging.info('Training domains: {}.'.format(args.train_domains))
+    train_domains = args.train_domains.split(',')
+    train_domains = [int(i) for i in train_domains]
+    logging.info('Testing domain: {}.'.format(args.test_domain))
+    train_datasets = []
+    train_transforms = []
+    train_tasks = []
 
-    elif args.dataset == 'HST':
-        pass
 
+    for i in range(len(train_domains)):
+        if args.dataset == 'HST':
+            train_datasets.append(HST(train_domains[i], 
+                                        args.data_dir_path))
+        else:
+            train_datasets.append(CWRU(train_domains[i], 
+                                        args.data_dir_path)) 
+        train_datasets[i] = l2l.data.MetaDataset(train_datasets[i])
+        train_transforms.append([
+            FusedNWaysKShots(train_datasets[i], n=args.ways, k=2*args.shots),
+            LoadData(train_datasets[i]),
+            RemapLabels(train_datasets[i]),
+            ConsecutiveLabels(train_datasets[i]),
+        ])
+        train_tasks.append(l2l.data.Taskset(
+            train_datasets[i],
+            task_transforms=train_transforms[i],
+            num_tasks=args.train_task_num,
+        ))
+    if args.dataset == 'HST':
+        test_dataset = HST(args.test_domain, args.data_dir_path)
+    else:
+        test_dataset = CWRU(args.test_domain, args.data_dir_path)
+    test_dataset = l2l.data.MetaDataset(test_dataset)
     test_transforms = [
         FusedNWaysKShots(test_dataset, n=args.ways, k=2*args.shots),
         LoadData(test_dataset),
@@ -127,6 +138,9 @@ def train_model(args, model, maml, opt, loss,
     test_acc_list = []
     test_err_list = []
 
+    train_domains = args.train_domains.split(',')
+    train_domains = [int(i) for i in train_domains]
+
     for iteration in range(1, args.iters+1):
         opt.zero_grad()
         meta_train_err_sum = 0.0
@@ -134,7 +148,7 @@ def train_model(args, model, maml, opt, loss,
         meta_test_err_sum = 0.0
         meta_test_acc_sum = 0.0
 
-        train_index = random.randint(0, len(args.train_domains)-1)
+        train_index = random.randint(0, len(train_domains)-1)
 
         for task in range(args.meta_batch_size):
             # Compute meta-training loss

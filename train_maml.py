@@ -48,7 +48,7 @@ def parse_args():
                         help='Which dataset to use, \
                             default=CWRU, \
                             options=[CWRU, HST]')
-    parser.add_argument('--train_domains', type=list, default=[0, 1, 2],
+    parser.add_argument('--train_domains', type=str, default='0,1,2',
                         help='Training domain')
     parser.add_argument('--test_domain', type=int, default=3,
                         help='Test domain')
