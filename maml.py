@@ -120,7 +120,10 @@ def create_model(args, device):
         opt: the optimizer
         loss: the loss function
     """
-    model = l2l.vision.models.CNN4(output_size=10)
+    output_size=10
+    if args.dataset == 'HST':
+        output_size=5
+    model = l2l.vision.models.CNN4(output_size=output_size)
     model.to(device)
     maml = l2l.algorithms.MAML(model, lr=args.fast_lr, first_order=args.first_order)
     opt = torch.optim.Adam(model.parameters(), args.meta_lr)

@@ -11,8 +11,6 @@ import numpy as np
 
 from sklearn.utils import shuffle
 
-labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
 dataname_dict= {
     0:['D00AA', 'Dα7BA', 'Dα7JA', 'Dα7UA', 'Dβ7BA', 'Dβ7JA', 'Dβ7UA', 'Dγ7BA', 'Dγ7JA', 'Dγ7UA'],  # A: 20km/h
     1:['D00AH', 'Dα7BH', 'Dα7JH', 'Dα7UH', 'Dβ7BH', 'Dβ7JH', 'Dβ7UH', 'Dγ7BH', 'Dγ7JH', 'Dγ7UH'],  # H: 160km/h
@@ -24,6 +22,8 @@ axis_end = "_30S_"
 def load_HST_dataset(
         domain,
         dir_path,
+        partial=True,
+        labels=[0, 2, 3, 5, 6],
         channel=13,
         time_steps=1024,
         overlap_ratio=0.5,
@@ -32,8 +32,14 @@ def load_HST_dataset(
         raw=False,
         fft=True
 ):
-    logging.info("Domain: {}, normalization: {}, time_steps: {}, overlap_ratio: {}."
-                .format(domain, normalization, time_steps, overlap_ratio))
+    if not partial:
+        labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    
+    logging.info("Loading HST dataset...\n \
+                 Loading data domain: {}, if raw: {}, if partial: {},\n \
+                 Labels: {}, chnnel {}, time_steps: {}, overlap_ratio: {},\n \
+                 If using normalization: {}, if using FFT (if raw) {}."
+                .format(domain, raw, partial, labels, channel+1, time_steps, overlap_ratio, normalization, fft))
     
     dataset = {label: [] for label in labels}
 
@@ -98,8 +104,11 @@ def extract_dict_data(dataset):
 if __name__ == '__main__':
     # Data Splitting Parameters
     dir_path = './data'
+    labels = [0, 2, 3, 5, 6]
     dataset_name = 'HST'
-    time_steps = 1024
+    channel=13
+    algorithm = 'WT'
+    time_steps = 2048
     overlap_ratio = 0.5
     # STFT Parameters
     image_size = 84
@@ -111,10 +120,11 @@ if __name__ == '__main__':
         os.makedirs("./logs")
     setlogger("./logs/preprocess.log")
     for i in range(3):
-        dataset = load_HST_dataset(i, './data', 13, 2048)
-        img_dir = dir_path + "/STFTImageData_HST/" + str(i) + "/"
+        dataset = load_HST_dataset(i, './data', partial=True, labels=labels, channel=13, time_steps=time_steps)
+        img_dir = dir_path + "/{}ImageData_HST/".format(algorithm) + str(i) + "/"
         generate_time_frequency_image_dataset(
             dataset_name,
+            algorithm,
             dataset, 
             labels,
             image_size, 

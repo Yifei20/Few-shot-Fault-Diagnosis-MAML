@@ -11,7 +11,7 @@ import torch
 from scipy.io import loadmat
 from torch.utils.data import Dataset
 from torchvision import transforms
-from datasets.preprocess.cwru_preprocess import (
+from cwru_preprocess import (
     load_CWRU_dataset,
     extract_dict_data,
 )

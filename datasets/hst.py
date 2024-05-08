@@ -11,7 +11,7 @@ import torch
 from scipy.io import loadmat
 from torch.utils.data import Dataset
 from torchvision import transforms
-from datasets.preprocess.hst_preprocess import (
+from hst_preprocess import (
     load_HST_dataset,
     extract_dict_data,
 )
@@ -31,7 +31,7 @@ class HST(Dataset):
         self.domain = domain
         self.dir_path = dir_path
     
-        self.img_dir = dir_path + "/STFTImageData_HST/" + str(domain) + "/"
+        self.img_dir = dir_path + "/WTImageData_HST/" + str(domain) + "/"
         self.img_list = os.listdir(self.img_dir)
 
         if transform is None:
