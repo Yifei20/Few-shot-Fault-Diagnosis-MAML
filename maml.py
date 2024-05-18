@@ -1,5 +1,5 @@
-from datasets.cwru import CWRU
-from datasets.hst import HST
+from fault_datasets import CWRU, CWRU_FFT, HST, HST_FFT
+from models import CNN1D
 from utils import (
     print_logs,
     fast_adapt,
@@ -69,12 +69,22 @@ def create_datasets(args):
 
 
     for i in range(len(train_domains)):
-        if args.dataset == 'HST':
-            train_datasets.append(HST(train_domains[i], 
-                                        args.data_dir_path))
+        if args.preprocess == 'FFT':
+            if args.dataset == 'HST':
+                train_datasets.append(HST_FFT(train_domains[i], 
+                                              args.data_dir_path))
+            else:
+                train_datasets.append(CWRU_FFT(train_domains[i], 
+                                               args.data_dir_path))
         else:
-            train_datasets.append(CWRU(train_domains[i], 
-                                        args.data_dir_path)) 
+            if args.dataset == 'HST':
+                train_datasets.append(HST(train_domains[i], 
+                                           args.data_dir_path, 
+                                           args.preprocess))
+            else: 
+                train_datasets.append(CWRU(train_domains[i], 
+                                           args.data_dir_path, 
+                                           args.preprocess)) 
         train_datasets[i] = l2l.data.MetaDataset(train_datasets[i])
         train_transforms.append([
             FusedNWaysKShots(train_datasets[i], n=args.ways, k=2*args.shots),
@@ -87,10 +97,22 @@ def create_datasets(args):
             task_transforms=train_transforms[i],
             num_tasks=args.train_task_num,
         ))
-    if args.dataset == 'HST':
-        test_dataset = HST(args.test_domain, args.data_dir_path)
+    if args.preprocess == 'FFT':
+        if args.dataset == 'HST':
+            test_dataset = HST_FFT(args.test_domain, 
+                                   args.data_dir_path)
+        else:
+            test_dataset = CWRU_FFT(args.test_domain, 
+                                    args.data_dir_path)
     else:
-        test_dataset = CWRU(args.test_domain, args.data_dir_path)
+        if args.dataset == 'HST':
+            test_dataset = HST(args.test_domain, 
+                            args.data_dir_path,
+                            args.preprocess)
+        else:
+            test_dataset = CWRU(args.test_domain, 
+                                args.data_dir_path,
+                                args.preprocess)
     test_dataset = l2l.data.MetaDataset(test_dataset)
     test_transforms = [
         FusedNWaysKShots(test_dataset, n=args.ways, k=2*args.shots),
@@ -123,7 +145,10 @@ def create_model(args, device):
     output_size=10
     if args.dataset == 'HST':
         output_size=5
-    model = l2l.vision.models.CNN4(output_size=output_size)
+    if args.preprocess == 'FFT':
+        model = CNN1D(output_size=output_size)
+    else:
+        model = l2l.vision.models.CNN4(output_size=output_size)
     model.to(device)
     maml = l2l.algorithms.MAML(model, lr=args.fast_lr, first_order=args.first_order)
     opt = torch.optim.Adam(model.parameters(), args.meta_lr)

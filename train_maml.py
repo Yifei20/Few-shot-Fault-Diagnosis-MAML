@@ -48,6 +48,10 @@ def parse_args():
                         help='Which dataset to use, \
                             default=CWRU, \
                             options=[CWRU, HST]')
+    parser.add_argument('--preprocess', type=str, default='WT',
+                        help='Which preprocessing technique to use, \
+                            default=WT, \
+                            options=[WT, STFT, FFT]')
     parser.add_argument('--train_domains', type=str, default='0,1,2',
                         help='Training domain')
     parser.add_argument('--test_domain', type=int, default=3,
@@ -84,7 +88,13 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    experiment_title = 'MAML_{}_{}w_{}s'.format(args.dataset, 
+    if args.dataset not in ['CWRU', 'HST']:
+        raise ValueError('Dataset must be either CWRU or HST.')
+    if args.preprocess not in ['WT', 'STFT', 'FFT']:
+        raise ValueError('Preprocessing technique must be either WT, STFT, or FFT.')
+
+    experiment_title = 'MAML_{}_{}_{}w_{}s'.format(args.dataset, 
+                                                args.preprocess,
                                                 args.ways,
                                                 args.shots)
     if args.plot:

@@ -1,5 +1,5 @@
 
-from datasets.preprocess.utils import (
+from utils import (
     setlogger, 
     normalize,
     generate_time_frequency_image_dataset, 
@@ -91,23 +91,13 @@ def sample_preprocessing(sub_data, fft):
     return sub_data
 
 
-def extract_dict_data(dataset):
-    x = np.concatenate([dataset[key] for key in dataset.keys()])
-    y = []
-    for i, key in enumerate(dataset.keys()):
-        number = len(dataset[key])
-        y.append(np.tile(i, number))
-    y = np.concatenate(y)
-    return x, y
-
-
 if __name__ == '__main__':
     # Data Splitting Parameters
     dir_path = './data'
     labels = [0, 2, 3, 5, 6]
     dataset_name = 'HST'
     channel=13
-    algorithm = 'WT'
+    algorithm = 'WT' # 'STFT' or 'WT'
     time_steps = 2048
     overlap_ratio = 0.5
     # STFT Parameters
@@ -121,7 +111,7 @@ if __name__ == '__main__':
     setlogger("./logs/preprocess.log")
     for i in range(3):
         dataset = load_HST_dataset(i, './data', partial=True, labels=labels, channel=13, time_steps=time_steps)
-        img_dir = dir_path + "/{}ImageData_HST/".format(algorithm) + str(i) + "/"
+        img_dir = dir_path + "/{}_{}/".format(algorithm, dataset_name) + str(i) + "/"
         generate_time_frequency_image_dataset(
             dataset_name,
             algorithm,

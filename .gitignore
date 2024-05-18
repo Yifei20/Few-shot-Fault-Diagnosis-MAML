@@ -21,7 +21,7 @@ env/
 lib/
 data/
 checkpoints/
-curves/
+images/
 models/
 results/
 

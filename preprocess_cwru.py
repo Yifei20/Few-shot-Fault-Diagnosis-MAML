@@ -1,11 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import logging
 import os
 
 from scipy.io import loadmat
 from sklearn.utils import shuffle
-from datasets.preprocess.utils import (
+from utils import (
     setlogger, 
     normalize,
     generate_time_frequency_image_dataset
@@ -74,7 +73,7 @@ def load_CWRU_dataset(
     return dataset
 
 
-def sample_preprocessing(sub_data, fft=False):
+def sample_preprocessing(sub_data, fft):
     if fft:
         sub_data = np.fft.fft(sub_data)
         sub_data = np.abs(sub_data) / len(sub_data)
@@ -84,21 +83,11 @@ def sample_preprocessing(sub_data, fft=False):
     return sub_data
 
 
-def extract_dict_data(dataset):
-    x = np.concatenate([dataset[key] for key in dataset.keys()])
-    y = []
-    for i, key in enumerate(dataset.keys()):
-        number = len(dataset[key])
-        y.append(np.tile(i, number))
-    y = np.concatenate(y)
-    return x, y
-
-
-
 if __name__ == '__main__':
     # Data Splitting Parameters
     dir_path = './data'
     dataset_name = 'CWRU'
+    algorithm = 'WT' # 'STFT' or 'WT'
     time_steps = 1024
     overlap_ratio = 0.5
     # STFT Parameters
@@ -113,9 +102,10 @@ if __name__ == '__main__':
 
     for i in range(4):
         dataset = load_CWRU_dataset(i, './data')
-        img_dir = dir_path + "/STFTImageData/Drive_end_" + str(i) + "/"
+        img_dir = dir_path + "/{}_{}/Drive_end_".format(algorithm, dataset_name) + str(i) + "/"
         generate_time_frequency_image_dataset(
             dataset_name,
+            algorithm,
             dataset, 
             labels,
             image_size, 
