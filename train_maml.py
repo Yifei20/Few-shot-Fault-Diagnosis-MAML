@@ -48,7 +48,7 @@ def parse_args():
                         help='Which dataset to use, \
                             default=CWRU, \
                             options=[CWRU, HST]')
-    parser.add_argument('--preprocess', type=str, default='FFT',
+    parser.add_argument('--preprocess', type=str, default='STFT',
                         help='Which preprocessing technique to use, \
                             default=STFT, \
                             options=[WT, STFT, FFT]')
