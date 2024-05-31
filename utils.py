@@ -13,7 +13,7 @@ from PIL import Image
 
 
 
-def setup_logger(args, experiment_title):
+def setup_logger(log_path, experiment_title):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter("[%(asctime)s] %(message)s",
@@ -21,24 +21,12 @@ def setup_logger(args, experiment_title):
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     ch.setFormatter(formatter)
-    fh = logging.FileHandler(os.path.join(args.log_path, 
+    fh = logging.FileHandler(os.path.join(log_path, 
                                           experiment_title + '.log'))
     fh.setLevel(logging.INFO)
     fh.setFormatter(formatter)
     logger.addHandler(ch)
     logger.addHandler(fh)
-
-
-def setlogger(path):
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    consoleHandler = logging.StreamHandler()
-    fileHandler = logging.FileHandler(filename=path)
-    consoleHandler.setFormatter(formatter)
-    fileHandler.setFormatter(formatter)
-    logger.addHandler(consoleHandler)
-    logger.addHandler(fileHandler)
 
 
 def accuracy(predictions, targets):

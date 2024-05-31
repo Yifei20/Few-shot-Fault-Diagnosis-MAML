@@ -5,7 +5,7 @@ import os
 from scipy.io import loadmat
 from sklearn.utils import shuffle
 from utils import (
-    setlogger, 
+    setup_logger, 
     normalize,
     generate_time_frequency_image_dataset
 )
@@ -98,7 +98,8 @@ if __name__ == '__main__':
     # Set the logger
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
-    setlogger("./logs/preprocess.log")
+    preprocessing_titile = "preprocess_{}_{}".format(dataset_name, algorithm)
+    setup_logger("./logs", preprocessing_titile)
 
     for i in range(4):
         dataset = load_CWRU_dataset(i, './data')

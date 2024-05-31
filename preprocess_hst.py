@@ -1,6 +1,6 @@
 
 from utils import (
-    setlogger, 
+    setup_logger, 
     normalize,
     generate_time_frequency_image_dataset, 
     loadmat_v73
@@ -108,7 +108,9 @@ if __name__ == '__main__':
     # Set the logger
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
-    setlogger("./logs/preprocess.log")
+    preprocessing_titile = "preprocess_{}_{}".format(dataset_name, algorithm)
+    setup_logger("./logs", preprocessing_titile)
+    
     for i in range(3):
         dataset = load_HST_dataset(i, './data', partial=True, labels=labels, channel=13, time_steps=time_steps)
         img_dir = dir_path + "/{}_{}/".format(algorithm, dataset_name) + str(i) + "/"

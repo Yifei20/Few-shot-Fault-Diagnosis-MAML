@@ -48,14 +48,14 @@ def parse_args():
                         help='Which dataset to use, \
                             default=CWRU, \
                             options=[CWRU, HST]')
-    parser.add_argument('--preprocess', type=str, default='WT',
+    parser.add_argument('--preprocess', type=str, default='FFT',
                         help='Which preprocessing technique to use, \
-                            default=WT, \
+                            default=STFT, \
                             options=[WT, STFT, FFT]')
     parser.add_argument('--train_domains', type=str, default='0,1,2',
-                        help='Training domain')
+                        help='Training domain, integer(s) separated by commas, default=0,1,2')
     parser.add_argument('--test_domain', type=int, default=3,
-                        help='Test domain')
+                        help='Test domain, single integer, default=3')
     parser.add_argument('--train_task_num', type=int, default=200,
                         help='Number of samples per domain for training, default=200')
     parser.add_argument('--test_task_num', type=int, default=100,
@@ -92,11 +92,21 @@ if __name__ == "__main__":
         raise ValueError('Dataset must be either CWRU or HST.')
     if args.preprocess not in ['WT', 'STFT', 'FFT']:
         raise ValueError('Preprocessing technique must be either WT, STFT, or FFT.')
+    
+    args.train_domains = args.train_domains.split(',')
+    train_domains_str = ''
+    for i in range(len(args.train_domains)):
+        train_domains_str += str(args.train_domains[i])
+    args.train_domains = [int(i) for i in args.train_domains]
 
-    experiment_title = 'MAML_{}_{}_{}w_{}s'.format(args.dataset, 
+    # Experiment title in the format:
+    # MAML_"dataset name"_"number of ways" + "number of shots"_"source domains"_"target domain".log
+    experiment_title = 'MAML_{}_{}_{}w{}s_source{}_target{}'.format(args.dataset, 
                                                 args.preprocess,
                                                 args.ways,
-                                                args.shots)
+                                                args.shots,
+                                                train_domains_str,
+                                                args.test_domain)
     if args.plot:
         if not os.path.exists(args.plot_path):
             os.makedirs(args.plot_path)
@@ -108,6 +118,6 @@ if __name__ == "__main__":
     if args.log:
         if not os.path.exists(args.log_path):
             os.makedirs(args.log_path)
-        setup_logger(args, experiment_title)
+        setup_logger(args.log_path, experiment_title)
 
     maml.train(args, experiment_title)

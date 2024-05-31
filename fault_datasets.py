@@ -1,4 +1,3 @@
-
 """
 PyTorch dataset classes for CWRU and HST datasets.
 """
@@ -27,9 +26,9 @@ class CWRU(Dataset):
         self.domain = domain
         self.dir_path = dir_path
         if preprocess != 'FFT':
-            self.img_dir = dir_path + "/{}_CWRU_12k/Drive_end_".format(preprocess) + str(domain) + "/"
+            self.img_dir = dir_path + "/{}_CWRU/Drive_end_".format(preprocess) + str(domain) + "/"
         else:
-            self.img_dir = dir_path + "/CWRU_12k/Drive_end_" + str(domain) + "/"
+            self.img_dir = dir_path + "/CWRU/Drive_end_" + str(domain) + "/"
         self.img_list = os.listdir(self.img_dir)
 
         if transform is None:

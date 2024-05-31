@@ -60,29 +60,27 @@ def create_datasets(args):
         test_tasks: testing tasks
     """
     logging.info('Training domains: {}.'.format(args.train_domains))
-    train_domains = args.train_domains.split(',')
-    train_domains = [int(i) for i in train_domains]
     logging.info('Testing domain: {}.'.format(args.test_domain))
     train_datasets = []
     train_transforms = []
     train_tasks = []
 
 
-    for i in range(len(train_domains)):
+    for i in range(len(args.train_domains)):
         if args.preprocess == 'FFT':
             if args.dataset == 'HST':
-                train_datasets.append(HST_FFT(train_domains[i], 
+                train_datasets.append(HST_FFT(args.train_domains[i], 
                                               args.data_dir_path))
             else:
-                train_datasets.append(CWRU_FFT(train_domains[i], 
+                train_datasets.append(CWRU_FFT(args.train_domains[i], 
                                                args.data_dir_path))
         else:
             if args.dataset == 'HST':
-                train_datasets.append(HST(train_domains[i], 
+                train_datasets.append(HST(args.train_domains[i], 
                                            args.data_dir_path, 
                                            args.preprocess))
             else: 
-                train_datasets.append(CWRU(train_domains[i], 
+                train_datasets.append(CWRU(args.train_domains[i], 
                                            args.data_dir_path, 
                                            args.preprocess)) 
         train_datasets[i] = l2l.data.MetaDataset(train_datasets[i])
@@ -107,8 +105,8 @@ def create_datasets(args):
     else:
         if args.dataset == 'HST':
             test_dataset = HST(args.test_domain, 
-                            args.data_dir_path,
-                            args.preprocess)
+                               args.data_dir_path,
+                               args.preprocess)
         else:
             test_dataset = CWRU(args.test_domain, 
                                 args.data_dir_path,
@@ -166,8 +164,8 @@ def train_model(args, model, maml, opt, loss,
     test_acc_list = []
     test_err_list = []
 
-    train_domains = args.train_domains.split(',')
-    train_domains = [int(i) for i in train_domains]
+    # train_domains = args.train_domains.split(',')
+    # train_domains = [int(i) for i in train_domains]
 
     for iteration in range(1, args.iters+1):
         opt.zero_grad()
@@ -176,7 +174,7 @@ def train_model(args, model, maml, opt, loss,
         meta_test_err_sum = 0.0
         meta_test_acc_sum = 0.0
 
-        train_index = random.randint(0, len(train_domains)-1)
+        train_index = random.randint(0, len(args.train_domains)-1)
 
         for task in range(args.meta_batch_size):
             # Compute meta-training loss
@@ -257,11 +255,11 @@ def plot_metrics(args,
         plt.subplot(122)
         plt.plot(train_loss, '-o', label="train loss")
         plt.plot(test_loss, '-o', label="test loss")
-        plt.xlabel('Training iteration')
+        plt.xlabel('Iteration')
         plt.ylabel('Loss')
         plt.title("Loss Curve by Iteration")
         plt.legend()
-        plt.suptitle("CWRU Bearing Fault Diagnosis {}way-{}shot".format(args.ways, args.shots))
+        # plt.suptitle("CWRU Bearing Fault Diagnosis {}way-{}shot".format(args.ways, args.shots))
         plt.savefig(args.plot_path + '/' + experiment_title + '_{}.png'.format(iteration))
         plt.show()
 
