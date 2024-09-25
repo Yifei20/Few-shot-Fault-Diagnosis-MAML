@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This project employs the Model-Agnostic Meta-Learning (MAML) framework to address the cross-domain few-shot fault diagnosis problem, specifically on the *[Case Western Reserve University (CWRU) bearing fault dataset](https://engineering.case.edu/bearingdatacenter)* and a *[closed-source high-speed train (HST) fault dataset](http://www.aas.net.cn/article/zdhxb/2019/12/2218)*. Since HST dataset is not open source, this repository mainly introduces the application and results on CWRU dataset.
+This project employs the Model-Agnostic Meta-Learning (MAML) framework to address the cross-domain few-shot fault diagnosis problem, specifically on the *[Case Western Reserve University (CWRU) bearing fault dataset](https://engineering.case.edu/bearingdatacenter)* and a *[High-Speed Train fault dataset (closed-source)](http://www.aas.net.cn/cn/article/doi/10.16383/j.aas.c190395)*. Since the latter is not open-source, this repository mainly introduces the application and results on CWRU dataset.
 
 It implements this framework under different cross-domain settings, including  source domains consisting of tasks from one or more working conditions and different few-shot learning settings. This project also implements different methods for preprocessing the raw signal data, including *Fast Fourier Transform (FFT)* that generates one-dimensional data and *Short-Time Fourier Transform (STFT)* and *Wavelet Transform (WT)* that generate two-dimensional *Time-Frequency Images (TFIs)*. The processed 1D and 2D data are classified using different CNN-based models.
 
