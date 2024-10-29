@@ -8,11 +8,9 @@ It implements this framework under different cross-domain settings, including  s
 
 ### 1.1 CWRU Dataset and Preprocessing
 
-In this project, the fault categories of the CWRU dataset are categorized into a total of 10 types of data, including one type of health data and nine types of fault data, as shown in the following table. The sampling frequency of these data is 12k Hz, except for the normal data, which is sampled at 48k Hz.
+In this project, the fault categories of the CWRU dataset are categorized into a total of 10 types of data, including one type of health data and nine types of fault data, as shown in the following table. The sampling frequency of these data is 12k Hz, except for the normal data, which is sampled at 48k Hz. Then, a sliding window of length 1024 with an overlap rate of 0.5 was used to sample the original data and construct the raw data samples. Subsequently, three preprocessing methods (FFT, STFT and WT) were used to preprocess these raw samples.
 
-In this project, a sliding window of length 1024 with an overlap rate of 0.5 was used to sample the original data and construct the raw data samples. The three subsequent preprocessing methods (FFT, STFT and WT) are based on the samples obtained from this sampling method.
-
-![CWRU-fault-type-table](https://cdn.jsdelivr.net/gh/Yifei20/blog-resource-bed/img/202405311753463.png)
+![CWRU fault label encoding method](https://s2.loli.net/2024/10/29/yJLcsFkm2wBVbdZ.png)
 
 ### 1.2 Cross-domain Setting
 
