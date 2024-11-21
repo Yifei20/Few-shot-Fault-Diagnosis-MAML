@@ -2,9 +2,7 @@
 
 ## 1. Introduction
 
-This project employs the Model-Agnostic Meta-Learning (MAML) framework to address the cross-domain few-shot fault diagnosis problem, specifically on the *[Case Western Reserve University (CWRU) bearing fault dataset](https://engineering.case.edu/bearingdatacenter)* and a *[High-Speed Train fault dataset (closed-source)](http://www.aas.net.cn/cn/article/doi/10.16383/j.aas.c190395)*. Since the latter is not open-source, this repository mainly introduces the application and results on CWRU dataset.
-
-It implements this framework under different cross-domain settings, including  source domains consisting of tasks from one or more working conditions and different few-shot learning settings. This project also implements different methods for preprocessing the raw signal data, including *Fast Fourier Transform (FFT)* that generates one-dimensional data and *Short-Time Fourier Transform (STFT)* and *Wavelet Transform (WT)* that generate two-dimensional *Time-Frequency Images (TFIs)*. The processed 1D and 2D data are classified using different CNN-based models.
+This project employs the Model-Agnostic Meta-Learning (MAML) framework to address the cross-domain few-shot fault diagnosis problem, specifically on the *[Case Western Reserve University (CWRU) bearing fault dataset](https://engineering.case.edu/bearingdatacenter)*. It implements this framework under different cross-domain settings, including  source domains consisting of tasks from one or more working conditions and different few-shot learning settings. This project also implements different methods for preprocessing the raw signal data, including *Fast Fourier Transform (FFT)* that generates one-dimensional data and *Short-Time Fourier Transform (STFT)* and *Wavelet Transform (WT)* that generate two-dimensional *Time-Frequency Images (TFIs)*. The processed 1D and 2D data are classified using different CNN-based models.
 
 ### 1.1 CWRU Dataset and Preprocessing
 
@@ -37,10 +35,10 @@ For MDML case, the project directly uses all the conditions except the target co
 
 ## 3. Requirements
 
-This implementation is based on Python 3, and the detailed requirements of this project are listed below. You can install this requirement using `requirement.txt` file directly by the following code in terminal.
+This implementation is based on Python 3, and the detailed package requirements of this project are listed below. You can install this requirement using `requirements.txt` file directly by running the following command in your terminal.
 
 ```shell
-pip install requirement.txt
+pip install -r requirements.txt
 ```
 
 - h5py==3.2.1
@@ -60,35 +58,43 @@ To run this code, you can follow the instructions below.
 
 1. Clone this repo.
 
-```shell
-git clone https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML
-cd Few-shot-Fault-Diagnosis-MAML
-```
+    ```shell
+    git clone https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML
+    cd Few-shot-Fault-Diagnosis-MAML
+    ```
 
 2. Download the [CWRU Bearing Fault](https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/tag/raw_dataset) dataset.
+    - Download the raw data:
+      ```shell
+      mkdir data
+      cd data
+      wget https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/download/raw_dataset/CWRU_12k.zip
+      unzip CWRU_12k.zip
+      cd ..
+      ```
+   - If you want to use 2D TFIs as the input to the framework, you can download the preprocessed (by [STFT](https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/tag/stft_dataset) and [WT](https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/tag/wt_dataset)) data using the following command
+     ```shell
+     cd data
+     wget https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/download/wt_dataset/WT_CWRU.zip
+     wget https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/download/stft_dataset/STFT_CWRU.zip
+     unzip WT_CWRU.zip
+     unzip STFT_CWRU.zip
+     cd ..
+     ```
+     or process the data yourself using the `preprocess_cwru.py` (very time consuming). If you want to change the preprocessing settings, you can modify the parameter settings in its main function.
+     ```shell
+     python preprocess_cwru.py
+     ```
 
-```shell
-mkdir data
-cd data
-wget https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/download/raw_dataset/CWRU_12k.zip
-unzip CWRU_12k.zip
-```
-
-If you want to use 2D TFIs as the input to the framework, you need to preprocess the raw data using STFT or WT. Or, you can directly download the preprocessed TFI data from [STFT](https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/tag/stft_dataset), [WT](https://github.com/Yifei20/Few-shot-Fault-Diagnosis-MAML/releases/tag/wt_dataset). The downloading process is the same as step 2.
-
-*If you want to change the preprocessing settings, you can modify the parameter settings first in this file's main function.*
-
-3. (Optional) Preprocess the raw data to transform them into TFIs.
-
-```shell
-python preprocess_cwru.py
-```
-
-4. Train MAML on the obtained dataset (please refer to the *train_maml.py* to see more detailed parameter settings).
-
-```shell
-python train_maml.py --ways 10 --shots 5 --iter 1000 --first_order True --preprocess FFT --train_domains 0,1,2 --test_domain 3
-```
+4. Train and test MAML on the obtained dataset, you can run `python train_maml -h` to see the detailed parameter setting options.
+    - For example, if you want to train model on domain 0,1,2 and then transfer it to domain 3, you can run it using the following command:
+      ```shell
+      python train_maml.py --ways 10 --shots 5 --iter 1000 --first_order True --preprocess FFT --train_domains 0,1,2 --test_domain 3
+      ```
+    - Or, if you want to train model on domain 0 and then transfer it to domain 3, you can just change 0,1,2 to 0, like
+      ```shell
+      python train_maml.py --ways 10 --shots 5 --iter 1000 --first_order True --preprocess FFT --train_domains 0 --test_domain 3
+      ```
 
 ## 5. References
 
